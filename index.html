@@ -129,6 +129,32 @@ a { color: inherit; }
   padding: var(--sp-8) var(--sp-5) var(--sp-9);
 }
 
+/* Desktop: two columns — left (header+player) sticky, right scrolls */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--panel-max)) 1fr;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.left-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (min-width: 861px) {
+  .left-col {
+    position: sticky;
+    top: var(--sp-5);
+    align-self: start;
+  }
+}
+
 .top {
   display: flex;
   align-items: center;
@@ -160,20 +186,8 @@ h1 {
   color: var(--c-text-dim);
   font-size: 0.9375rem;
   max-width: 52ch;
-  margin-bottom: var(--sp-7);
+  margin-bottom: var(--sp-6);
   animation: fadeRise 0.5s var(--ease) 0.05s both;
-}
-
-/* Desktop: two-column layout. Mobile: stacked. */
-.layout {
-  display: grid;
-  grid-template-columns: minmax(0, var(--panel-max)) 1fr;
-  gap: var(--sp-6);
-  align-items: start;
-}
-
-@media (max-width: 860px) {
-  .layout { grid-template-columns: 1fr; }
 }
 
 /* ============================================================
@@ -186,15 +200,6 @@ h1 {
   box-shadow: var(--shadow-card);
   overflow: hidden;
   animation: fadeRise 0.5s var(--ease) 0.1s both;
-}
-
-/* Sticky player on desktop while scrolling the right column */
-@media (min-width: 861px) {
-  .panel {
-    position: sticky;
-    top: var(--sp-5);
-    align-self: start;
-  }
 }
 
 .panel-inner { padding: var(--sp-6); }
@@ -423,7 +428,7 @@ h1 {
 }
 .step-text { font-size: 0.875rem; color: var(--c-text-dim); line-height: 1.5; padding-top: 1px; }
 
-/* Right column groups on desktop */
+/* Right column */
 .side-col { display: flex; flex-direction: column; gap: var(--sp-4); }
 .side-col > * { animation: fadeRise 0.5s var(--ease) both; }
 .side-col > *:nth-child(1) { animation-delay: 0.16s; }
@@ -440,54 +445,56 @@ footer {
 <body>
   <div class="page">
 
-    <div class="top">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      </div>
-      <h1>Speaker Cleaner</h1>
-    </div>
-    <p class="subtitle">Calibrated tones to help clear water and debris from your phone speaker.</p>
-
     <div class="layout">
 
-      <!-- LEFT: main control panel -->
-      <div class="panel">
-        <div class="panel-inner">
-
-          <div class="modes" role="tablist" aria-label="Cleaning mode">
-            <div class="mode-indicator" id="modeIndicator"></div>
-            <button class="mode-btn active" data-mode="water" onclick="setMode('water')" role="tab" aria-selected="true">Water</button>
-            <button class="mode-btn" data-mode="dust" onclick="setMode('dust')" role="tab" aria-selected="false">Dust</button>
-            <button class="mode-btn" data-mode="both" onclick="setMode('both')" role="tab" aria-selected="false">Full</button>
+      <!-- LEFT: header + subtitle + player (sticky together on desktop) -->
+      <div class="left-col">
+        <div class="top">
+          <div class="logo-mark">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
           </div>
+          <h1>Speaker Cleaner</h1>
+        </div>
+        <p class="subtitle">Calibrated tones to help clear water and debris from your phone speaker.</p>
 
-          <div class="readout">
-            <div class="hz" id="hz">165</div>
-            <div class="hz-unit">Hz</div>
-          </div>
-          <p class="mode-desc" id="modeDesc">Low-frequency pulse · best for ejecting water</p>
+        <div class="panel">
+          <div class="panel-inner">
 
-          <div class="wave-wrap">
-            <canvas id="wave" width="400" height="128"></canvas>
-          </div>
-
-          <div class="progress-row">
-            <div class="bar-track">
-              <div class="bar-fill" id="bar"></div>
+            <div class="modes" role="tablist" aria-label="Cleaning mode">
+              <div class="mode-indicator" id="modeIndicator"></div>
+              <button class="mode-btn active" data-mode="water" onclick="setMode('water')" role="tab" aria-selected="true">Water</button>
+              <button class="mode-btn" data-mode="dust" onclick="setMode('dust')" role="tab" aria-selected="false">Dust</button>
+              <button class="mode-btn" data-mode="both" onclick="setMode('both')" role="tab" aria-selected="false">Full</button>
             </div>
-            <div class="time-row">
-              <span id="elapsed">0:00</span>
-              <span id="total">0:45</span>
+
+            <div class="readout">
+              <div class="hz" id="hz">165</div>
+              <div class="hz-unit">Hz</div>
             </div>
+            <p class="mode-desc" id="modeDesc">Low-frequency pulse · best for ejecting water</p>
+
+            <div class="wave-wrap">
+              <canvas id="wave" width="400" height="128"></canvas>
+            </div>
+
+            <div class="progress-row">
+              <div class="bar-track">
+                <div class="bar-fill" id="bar"></div>
+              </div>
+              <div class="time-row">
+                <span id="elapsed">0:00</span>
+                <span id="total">0:45</span>
+              </div>
+            </div>
+
+            <button class="play-btn" id="playBtn" onclick="toggle()">
+              <svg class="icon-play" id="playIcon" viewBox="0 0 24 24">
+                <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86z"/>
+              </svg>
+              <span id="playLabel">Start cleaning</span>
+            </button>
+
           </div>
-
-          <button class="play-btn" id="playBtn" onclick="toggle()">
-            <svg class="icon-play" id="playIcon" viewBox="0 0 24 24">
-              <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86z"/>
-            </svg>
-            <span id="playLabel">Start cleaning</span>
-          </button>
-
         </div>
       </div>
 
@@ -590,7 +597,6 @@ footer {
     let raf = null;
     let pulseId = null;
 
-    // ---- persisted preference ----
     const STORAGE_KEY = 'speaker-cleaner-mode';
     function loadSavedMode() {
       try {
@@ -706,7 +712,6 @@ footer {
       if (t < cfg.duration) raf = requestAnimationFrame(tick);
     }
 
-    // ---- live waveform ----
     const waveCanvas = document.getElementById('wave');
     const waveCtx = waveCanvas.getContext('2d');
     const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--c-accent').trim() || '#4d8dff';
@@ -820,7 +825,6 @@ footer {
       icon.classList.add('icon-pop');
     }
 
-    // ---- indicator: exact tab width + left so L/R padding match ----
     const modesEl = document.querySelector('.modes');
     const indicator = document.getElementById('modeIndicator');
     const tabs = Array.from(document.querySelectorAll('.mode-btn'));
@@ -848,11 +852,9 @@ footer {
     }
 
     setMode(loadSavedMode());
-    // Recalculate after layout settles (fonts / subpixel)
     requestAnimationFrame(() => moveIndicatorToMode(mode, false));
     setTimeout(() => moveIndicatorToMode(mode, false), 100);
 
-    // ---- accordion panels ----
     function toggleAccordion(id) {
       const panel = document.getElementById(id);
       const isOpen = panel.getAttribute('data-open') === 'true';
