@@ -8,47 +8,28 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234d8dff'%3E%3Cpath d='M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234d8dff'%3E%3Cpath d='M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z'/%3E%3C/svg%3E">
 <style>
-
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
 :root {
-  /* Color — surfaces */
   --c-bg: #0d0d10;
   --c-surface: #17171b;
   --c-surface-2: #1f1f24;
   --c-surface-3: #28282e;
   --c-border: #2c2c33;
   --c-border-strong: #38383f;
-
-  /* Color — text */
   --c-text: #f5f5f7;
   --c-text-dim: #a6a6b0;
   --c-text-faint: #6f6f79;
-
-  /* Color — accent */
   --c-accent: #4d8dff;
   --c-accent-hover: #3a76e6;
   --c-accent-soft: rgba(77, 141, 255, 0.12);
   --c-accent-line: rgba(77, 141, 255, 0.28);
-
-  /* Color — stop / danger */
   --c-stop: #f0473f;
   --c-stop-hover: #d93a33;
-
-  /* Color — warning */
   --c-warn: #f5a623;
   --c-warn-soft: rgba(245, 166, 35, 0.1);
   --c-warn-line: rgba(245, 166, 35, 0.22);
-
-  /* Color — safe / info */
   --c-safe: #34c77b;
-
-  /* Type */
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
-
-  /* Spacing scale (4px base) */
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -58,24 +39,16 @@
   --sp-7: 32px;
   --sp-8: 40px;
   --sp-9: 48px;
-
-  /* Radius */
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
   --r-full: 999px;
-
-  /* Shadow */
   --shadow-accent: 0 8px 24px rgba(77, 141, 255, 0.28);
   --shadow-stop: 0 8px 24px rgba(240, 71, 63, 0.28);
   --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 12px 32px rgba(0,0,0,0.28);
-
-  /* Motion */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --dur-fast: 0.14s;
   --dur-med: 0.22s;
-
-  /* Layout */
   --container-max: 1040px;
   --panel-max: 480px;
 }
@@ -84,9 +57,9 @@
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-@keyframes fadeRise {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes softPulse {
@@ -120,16 +93,12 @@ a { color: inherit; }
   border-radius: var(--r-sm);
 }
 
-/* ============================================================
-   LAYOUT
-   ============================================================ */
 .page {
   max-width: var(--container-max);
   margin: 0 auto;
   padding: var(--sp-8) var(--sp-5) var(--sp-9);
 }
 
-/* Desktop: two columns — left (header+player) sticky, right scrolls */
 .layout {
   display: grid;
   grid-template-columns: minmax(0, var(--panel-max)) 1fr;
@@ -141,16 +110,20 @@ a { color: inherit; }
   .layout { grid-template-columns: 1fr; }
 }
 
+/* Whole left stack sticks together on desktop */
 .left-col {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
 
 @media (min-width: 861px) {
   .left-col {
+    position: -webkit-sticky;
     position: sticky;
-    top: var(--sp-5);
+    top: 24px;
+    z-index: 5;
     align-self: start;
   }
 }
@@ -160,7 +133,7 @@ a { color: inherit; }
   align-items: center;
   gap: var(--sp-3);
   margin-bottom: var(--sp-2);
-  animation: fadeRise 0.5s var(--ease) both;
+  animation: fadeIn 0.45s var(--ease) both;
 }
 
 .logo-mark {
@@ -187,19 +160,16 @@ h1 {
   font-size: 0.9375rem;
   max-width: 52ch;
   margin-bottom: var(--sp-6);
-  animation: fadeRise 0.5s var(--ease) 0.05s both;
+  animation: fadeIn 0.45s var(--ease) 0.05s both;
 }
 
-/* ============================================================
-   MAIN PANEL
-   ============================================================ */
 .panel {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  animation: fadeRise 0.5s var(--ease) 0.1s both;
+  animation: fadeIn 0.45s var(--ease) 0.1s both;
 }
 
 .panel-inner { padding: var(--sp-6); }
@@ -279,7 +249,6 @@ h1 {
 }
 .mode-desc.swap { opacity: 0; }
 
-/* Waveform canvas */
 .wave-wrap {
   height: 64px;
   border-radius: var(--r-sm);
@@ -291,7 +260,6 @@ h1 {
 }
 #wave { width: 100%; height: 100%; display: block; }
 
-/* Play button */
 .play-btn {
   width: 100%;
   height: 56px;
@@ -314,7 +282,7 @@ h1 {
 .play-btn:active { transform: translateY(0) scale(0.98); }
 .play-btn.stop { background: var(--c-stop); box-shadow: var(--shadow-stop); animation: softPulse 1.8s ease-in-out infinite; }
 .play-btn.stop:hover { background: var(--c-stop-hover); }
-.play-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; transition: transform var(--dur-fast) var(--ease); }
+.play-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
 .play-btn .icon-play { margin-left: 2px; }
 .play-btn svg.icon-pop { animation: popIn 0.22s var(--ease); }
 
@@ -341,9 +309,6 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
-/* ============================================================
-   ACCORDION PANELS (safety + steps)
-   ============================================================ */
 .accordion-panel {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
@@ -394,13 +359,11 @@ h1 {
 .accordion-body-inner {
   overflow: hidden;
   opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  transition: opacity var(--dur-fast) var(--ease);
 }
 .accordion-panel[data-open="true"] .accordion-body-inner {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity var(--dur-med) var(--ease) 0.08s, transform var(--dur-med) var(--ease) 0.08s;
+  transition: opacity var(--dur-med) var(--ease) 0.08s;
 }
 
 .accordion-panel.warn .accordion-body-inner { border-top: 1px solid var(--c-warn-line); }
@@ -428,11 +391,10 @@ h1 {
 }
 .step-text { font-size: 0.875rem; color: var(--c-text-dim); line-height: 1.5; padding-top: 1px; }
 
-/* Right column */
 .side-col { display: flex; flex-direction: column; gap: var(--sp-4); }
-.side-col > * { animation: fadeRise 0.5s var(--ease) both; }
-.side-col > *:nth-child(1) { animation-delay: 0.16s; }
-.side-col > *:nth-child(2) { animation-delay: 0.22s; }
+.side-col > * { animation: fadeIn 0.45s var(--ease) both; }
+.side-col > *:nth-child(1) { animation-delay: 0.12s; }
+.side-col > *:nth-child(2) { animation-delay: 0.18s; }
 
 footer {
   margin-top: var(--sp-7);
@@ -444,10 +406,8 @@ footer {
 </head>
 <body>
   <div class="page">
-
     <div class="layout">
 
-      <!-- LEFT: header + subtitle + player (sticky together on desktop) -->
       <div class="left-col">
         <div class="top">
           <div class="logo-mark">
@@ -459,7 +419,6 @@ footer {
 
         <div class="panel">
           <div class="panel-inner">
-
             <div class="modes" role="tablist" aria-label="Cleaning mode">
               <div class="mode-indicator" id="modeIndicator"></div>
               <button class="mode-btn active" data-mode="water" onclick="setMode('water')" role="tab" aria-selected="true">Water</button>
@@ -493,14 +452,11 @@ footer {
               </svg>
               <span id="playLabel">Start cleaning</span>
             </button>
-
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: safety + steps -->
       <div class="side-col">
-
         <div class="accordion-panel" id="safetyPanel" data-open="false">
           <button class="accordion-head" onclick="toggleAccordion('safetyPanel')" aria-expanded="false">
             <svg class="head-icon" viewBox="0 0 24 24"><path d="M12 2 2 7v6c0 5.25 3.75 9.75 10 11 6.25-1.25 10-5.75 10-11V7l-10-5zm0 2.24 8 4v4.76c0 4.14-2.9 7.85-8 8.96-5.1-1.11-8-4.82-8-8.96V8.24l8-4zM11 7v6h2V7h-2zm0 8v2h2v-2h-2z"/></svg>
@@ -510,26 +466,11 @@ footer {
           <div class="accordion-body-wrap">
             <div class="accordion-body-inner">
               <div class="safety-body">
-                <div class="step">
-                  <div class="step-num">1</div>
-                  <div class="step-text"><strong>Not a repair.</strong> It loosens trapped water and debris — it won't fix corrosion or internal damage.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">2</div>
-                  <div class="step-text"><strong>Stop</strong> if the phone gets hot or the sound distorts mid-cycle.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">3</div>
-                  <div class="step-text"><strong>Wait between cycles</strong> — repeated back-to-back runs can stress the speaker.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">4</div>
-                  <div class="step-text"><strong>Keep pets away</strong> — some tones are uncomfortable for sensitive hearing.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">5</div>
-                  <div class="step-text"><strong>After significant submersion,</strong> sound alone may not be enough — consider professional repair.</div>
-                </div>
+                <div class="step"><div class="step-num">1</div><div class="step-text"><strong>Not a repair.</strong> It loosens trapped water and debris — it won't fix corrosion or internal damage.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text"><strong>Stop</strong> if the phone gets hot or the sound distorts mid-cycle.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text"><strong>Wait between cycles</strong> — repeated back-to-back runs can stress the speaker.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text"><strong>Keep pets away</strong> — some tones are uncomfortable for sensitive hearing.</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-text"><strong>After significant submersion,</strong> sound alone may not be enough — consider professional repair.</div></div>
               </div>
             </div>
           </div>
@@ -544,50 +485,26 @@ footer {
           <div class="accordion-body-wrap">
             <div class="accordion-body-inner">
               <div class="steps-body">
-                <div class="step">
-                  <div class="step-num">1</div>
-                  <div class="step-text">Remove any case, speaker facing down over a soft cloth.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">2</div>
-                  <div class="step-text">Turn media volume all the way up.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">3</div>
-                  <div class="step-text">Press Start and let the cycle finish. Wait 20–30 sec before repeating.</div>
-                </div>
-                <div class="step">
-                  <div class="step-num">4</div>
-                  <div class="step-text">Test the speaker. Stop after 3 cycles if there's no improvement.</div>
-                </div>
+                <div class="step"><div class="step-num">1</div><div class="step-text">Remove any case, speaker facing down over a soft cloth.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-text">Turn media volume all the way up.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-text">Press Start and let the cycle finish. Wait 20–30 sec before repeating.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-text">Test the speaker. Stop after 3 cycles if there's no improvement.</div></div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
 
-    <footer>
-      Runs entirely in your browser · No data collected
-    </footer>
-
+    <footer>Runs entirely in your browser · No data collected</footer>
   </div>
 
   <script>
     const MODES = {
-      water: {
-        freq: 165, duration: 45, pulseOn: 12, pulseOff: 3,
-        label: '165', desc: 'Low-frequency pulse · best for ejecting water'
-      },
-      dust: {
-        freq: 220, duration: 40, pulseOn: 40, pulseOff: 0,
-        label: '220', desc: 'Steady mid-tone · loosens dust and lint'
-      },
-      both: {
-        freq: 165, duration: 55, pulseOn: 10, pulseOff: 2,
-        label: '165–220', desc: 'Frequency sweep · water + dust combined', sweep: true
-      }
+      water: { freq: 165, duration: 45, pulseOn: 12, pulseOff: 3, label: '165', desc: 'Low-frequency pulse · best for ejecting water' },
+      dust: { freq: 220, duration: 40, pulseOn: 40, pulseOff: 0, label: '220', desc: 'Steady mid-tone · loosens dust and lint' },
+      both: { freq: 165, duration: 55, pulseOn: 10, pulseOff: 2, label: '165–220', desc: 'Frequency sweep · water + dust combined', sweep: true }
     };
 
     let mode = 'water';
@@ -645,21 +562,17 @@ footer {
     function start() {
       const cfg = MODES[mode];
       ctx = new (window.AudioContext || window.webkitAudioContext)();
-
       gain = ctx.createGain();
       gain.gain.value = 0.9;
       gain.connect(ctx.destination);
-
       osc = ctx.createOscillator();
       osc.type = 'sine';
       osc.frequency.value = cfg.freq;
       osc.connect(gain);
       osc.start();
-
       playing = true;
       startTs = performance.now();
       uiPlaying(true);
-
       if (cfg.sweep) {
         const t0 = ctx.currentTime;
         osc.frequency.setValueAtTime(165, t0);
@@ -667,7 +580,6 @@ footer {
       } else if (cfg.pulseOff > 0) {
         pulse(cfg);
       }
-
       raf = requestAnimationFrame(tick);
       if (settleRaf) cancelAnimationFrame(settleRaf);
       drawWave();
@@ -756,13 +668,11 @@ footer {
       const midY = rect.height / 2;
       const t = (performance.now() - waveStartTs) / 1000;
       const maxPeak = (rect.height / 2) * 0.75;
-
       waveCtx.clearRect(0, 0, rect.width, rect.height);
       waveCtx.lineWidth = 2;
       waveCtx.strokeStyle = accentColor;
       waveCtx.globalAlpha = alpha;
       waveCtx.beginPath();
-
       const steps = 96;
       for (let i = 0; i <= steps; i++) {
         const x = (i / steps) * rect.width;
@@ -808,7 +718,6 @@ footer {
       const btn = document.getElementById('playBtn');
       const icon = document.getElementById('playIcon');
       const label = document.getElementById('playLabel');
-
       if (on) {
         btn.classList.add('stop');
         icon.innerHTML = '<rect x="6" y="6" width="12" height="12" rx="1.5"/>';
@@ -833,10 +742,7 @@ footer {
     function getTabMetrics(index) {
       const track = modesEl.getBoundingClientRect();
       const tabRect = tabs[index].getBoundingClientRect();
-      return {
-        left: tabRect.left - track.left,
-        width: tabRect.width
-      };
+      return { left: tabRect.left - track.left, width: tabRect.width };
     }
 
     function moveIndicatorToMode(m, animate) {
@@ -891,7 +797,7 @@ footer {
       indicator.style.transition = 'none';
     }
 
-    function onDragMove(clientX, clientY) {
+    function onDragMove(clientX) {
       if (!dragging) return;
       const dx = clientX - dragStartX;
       const minOffset = getTabMetrics(0).left;
@@ -914,16 +820,12 @@ footer {
     }, { passive: true });
     modesEl.addEventListener('touchmove', (e) => {
       if (!dragging) return;
-      const t = e.touches[0];
-      onDragMove(t.clientX, t.clientY);
+      onDragMove(e.touches[0].clientX);
     }, { passive: true });
-    modesEl.addEventListener('touchend', () => {
-      onDragEnd();
-    }, { passive: true });
-
+    modesEl.addEventListener('touchend', onDragEnd, { passive: true });
     modesEl.addEventListener('mousedown', (e) => onDragStart(e.clientX, e.clientY));
-    window.addEventListener('mousemove', (e) => onDragMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', () => onDragEnd());
+    window.addEventListener('mousemove', (e) => onDragMove(e.clientX));
+    window.addEventListener('mouseup', onDragEnd);
     window.addEventListener('resize', () => { if (!dragging) moveIndicatorToMode(mode, false); });
   </script>
 </body>
