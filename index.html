@@ -203,13 +203,13 @@ h1 {
 .mode-indicator {
   position: absolute;
   top: var(--sp-1);
-  left: var(--sp-1);
-  width: calc((100% - var(--sp-1) * 2 - var(--sp-1) * 2) / 3);
+  left: 0;
+  width: 0;
   height: calc(100% - var(--sp-1) * 2);
   background: var(--c-surface);
   border-radius: var(--r-sm);
   box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  transition: transform var(--dur-med) var(--ease);
+  transition: transform var(--dur-med) var(--ease), width var(--dur-med) var(--ease);
   pointer-events: none;
   z-index: 1;
 }
@@ -821,20 +821,22 @@ footer {
     const tabs = Array.from(document.querySelectorAll('.mode-btn'));
     const modeOrder = ['water', 'dust', 'both'];
 
-    function slotOffset(index) {
-      // Compute from the real tab element position so the indicator
-      // always aligns exactly under the tab, regardless of gap/padding math.
+    function getTabMetrics(index) {
       const track = modesEl.getBoundingClientRect();
       const tabRect = tabs[index].getBoundingClientRect();
-      return tabRect.left - track.left;
+      return {
+        left: tabRect.left - track.left,
+        width: tabRect.width
+      };
     }
 
     function moveIndicatorToMode(m, animate) {
       const idx = modeOrder.indexOf(m);
+      const { left, width } = getTabMetrics(idx);
       indicator.style.transition = animate ? '' : 'none';
-      indicator.style.transform = `translateX(${slotOffset(idx)}px)`;
+      indicator.style.width = width + 'px';
+      indicator.style.transform = `translateX(${left}px)`;
       if (!animate) {
-        // force reflow then restore transition for future moves
         void indicator.offsetWidth;
         indicator.style.transition = '';
       }
@@ -860,7 +862,7 @@ footer {
       let best = 0;
       let bestDist = Infinity;
       modeOrder.forEach((m, i) => {
-        const dist = Math.abs(slotOffset(i) - offset);
+        const dist = Math.abs(getTabMetrics(i).left - offset);
         if (dist < bestDist) { bestDist = dist; best = i; }
       });
       return best;
@@ -873,7 +875,7 @@ footer {
       if (clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return;
       dragging = true;
       dragStartX = clientX;
-      baseOffset = slotOffset(activeIdx);
+      baseOffset = getTabMetrics(activeIdx).left;
       currentOffset = baseOffset;
       indicator.classList.add('dragging');
       indicator.style.transition = 'none';
@@ -882,8 +884,8 @@ footer {
     function onDragMove(clientX, clientY) {
       if (!dragging) return;
       const dx = clientX - dragStartX;
-      const minOffset = slotOffset(0);
-      const maxOffset = slotOffset(modeOrder.length - 1);
+      const minOffset = getTabMetrics(0).left;
+      const maxOffset = getTabMetrics(modeOrder.length - 1).left;
       currentOffset = Math.min(maxOffset, Math.max(minOffset, baseOffset + dx));
       indicator.style.transform = `translateX(${currentOffset}px)`;
       applyActiveTab(nearestIndexToOffset(currentOffset));
