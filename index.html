@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speaker Cleaner — Free Online Tool</title>
+<meta name="description" content="Play calibrated tones to help clear water and dust from phone speakers. Free, works in your browser.">
+<style>
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Color — surfaces */
+  --c-bg: #0d0d10;
+  --c-surface: #17171b;
+  --c-surface-2: #1f1f24;
+  --c-surface-3: #28282e;
+  --c-border: #2c2c33;
+  --c-border-strong: #38383f;
+
+  /* Color — text */
+  --c-text: #f5f5f7;
+  --c-text-dim: #a6a6b0;
+  --c-text-faint: #6f6f79;
+
+  /* Color — accent (blue, same family as before, refined) */
+  --c-accent: #4d8dff;
+  --c-accent-hover: #3a76e6;
+  --c-accent-soft: rgba(77, 141, 255, 0.12);
+  --c-accent-line: rgba(77, 141, 255, 0.28);
+
+  /* Color — stop / danger */
+  --c-stop: #f0473f;
+  --c-stop-hover: #d93a33;
+
+  /* Color — warning */
+  --c-warn: #f5a623;
+  --c-warn-soft: rgba(245, 166, 35, 0.1);
+  --c-warn-line: rgba(245, 166, 35, 0.22);
+
+  /* Color — safe / info */
+  --c-safe: #34c77b;
+
+  /* Type */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  /* Spacing scale (4px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --sp-9: 48px;
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-full: 999px;
+
+  /* Shadow */
+  --shadow-accent: 0 8px 24px rgba(77, 141, 255, 0.28);
+  --shadow-stop: 0 8px 24px rgba(240, 71, 63, 0.28);
+  --shadow-card: 0 1px 0 rgba(255,255,255,0.02) inset, 0 12px 32px rgba(0,0,0,0.28);
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 0.14s;
+  --dur-med: 0.22s;
+
+  /* Layout */
+  --container-max: 1040px;
+  --panel-max: 480px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@keyframes fadeRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes softPulse {
+  0%, 100% { box-shadow: var(--shadow-stop); }
+  50% { box-shadow: 0 8px 28px rgba(240, 71, 63, 0.5); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.94); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(77,141,255,0.08), transparent 60%),
+    var(--c-bg);
+  color: var(--c-text);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.page {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: var(--sp-8) var(--sp-5) var(--sp-9);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+  animation: fadeRise 0.5s var(--ease) both;
+}
+
+.logo-mark {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(155deg, var(--c-accent), #2f5fce);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-accent);
+}
+.logo-mark svg { width: 16px; height: 16px; fill: #fff; }
+
+h1 {
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--c-text-dim);
+  font-size: 0.9375rem;
+  max-width: 52ch;
+  margin-bottom: var(--sp-7);
+  animation: fadeRise 0.5s var(--ease) 0.05s both;
+}
+
+/* Desktop: two-column layout. Mobile: stacked. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--panel-max)) 1fr;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   MAIN PANEL
+   ============================================================ */
+.panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  animation: fadeRise 0.5s var(--ease) 0.1s both;
+}
+
+.panel-inner { padding: var(--sp-6); }
+
+.modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-1);
+  background: var(--c-surface-2);
+  padding: var(--sp-1);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-7);
+  touch-action: none;
+  position: relative;
+}
+
+.mode-indicator {
+  position: absolute;
+  top: var(--sp-1);
+  left: var(--sp-1);
+  width: calc((100% - var(--sp-1) * 2 - var(--sp-1) * 2) / 3);
+  height: calc(100% - var(--sp-1) * 2);
+  background: var(--c-surface);
+  border-radius: var(--r-sm);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: transform var(--dur-med) var(--ease);
+  pointer-events: none;
+  z-index: 1;
+}
+.mode-indicator.dragging { transition: none; cursor: grabbing; }
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: var(--c-text-dim);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  padding: var(--sp-2) var(--sp-1);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease);
+  position: relative;
+  z-index: 2;
+}
+.mode-btn.active {
+  color: var(--c-text);
+  cursor: grab;
+  animation: popIn 0.22s var(--ease);
+}
+
+.readout { text-align: center; margin-bottom: var(--sp-1); }
+
+.hz {
+  font-size: 3rem;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease);
+}
+.hz.swap { opacity: 0; transform: translateY(4px) scale(0.97); }
+.hz-unit {
+  font-size: 0.8125rem;
+  color: var(--c-text-faint);
+  font-weight: 500;
+  margin-top: var(--sp-1);
+}
+
+.mode-desc {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--c-text-dim);
+  margin-bottom: var(--sp-5);
+  min-height: 1.2em;
+  transition: opacity var(--dur-med) var(--ease);
+}
+.mode-desc.swap { opacity: 0; }
+
+/* Waveform canvas */
+.wave-wrap {
+  height: 64px;
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  margin-bottom: var(--sp-6);
+  overflow: hidden;
+  position: relative;
+}
+#wave { width: 100%; height: 100%; display: block; }
+
+/* Play button */
+.play-btn {
+  width: 100%;
+  height: 56px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--c-accent);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  box-shadow: var(--shadow-accent);
+}
+.play-btn:hover { background: var(--c-accent-hover); transform: translateY(-1px); }
+.play-btn:active { transform: translateY(0) scale(0.98); }
+.play-btn.stop { background: var(--c-stop); box-shadow: var(--shadow-stop); animation: softPulse 1.8s ease-in-out infinite; }
+.play-btn.stop:hover { background: var(--c-stop-hover); }
+.play-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; transition: transform var(--dur-fast) var(--ease); }
+.play-btn .icon-play { margin-left: 2px; }
+.play-btn svg.icon-pop { animation: popIn 0.22s var(--ease); }
+
+.progress-row { margin-bottom: var(--sp-5); }
+.bar-track {
+  height: 4px;
+  background: var(--c-surface-2);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--c-accent);
+  border-radius: var(--r-full);
+  transition: width 0.12s linear;
+}
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--sp-2);
+  font-size: 0.75rem;
+  color: var(--c-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   SAFETY PANEL
+   ============================================================ */
+/* ============================================================
+   ACCORDION PANELS (safety + steps)
+   ============================================================ */
+.accordion-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.accordion-panel.warn { border-color: var(--c-warn-line); }
+
+.accordion-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-5) var(--sp-6);
+  background: var(--c-surface);
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--c-text);
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.accordion-head:active { transform: scale(0.995); }
+.accordion-panel.warn .accordion-head { background: var(--c-warn-soft); }
+.accordion-head:hover { background: var(--c-surface-2); }
+.accordion-panel.warn .accordion-head:hover { background: var(--c-warn-soft); filter: brightness(1.1); }
+
+.accordion-head svg.head-icon { width: 18px; height: 18px; fill: var(--c-warn); flex-shrink: 0; }
+.accordion-panel:not(.warn) .accordion-head svg.head-icon { fill: var(--c-text-dim); }
+
+.accordion-title { font-size: 0.9375rem; font-weight: 650; flex: 1; }
+
+.accordion-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--c-text-dim);
+  transition: transform var(--dur-med) var(--ease);
+}
+.accordion-panel[data-open="true"] .accordion-chevron { transform: rotate(180deg); }
+
+.accordion-body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-med) var(--ease);
+}
+.accordion-panel[data-open="true"] .accordion-body-wrap { grid-template-rows: 1fr; }
+.accordion-body-inner {
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.accordion-panel[data-open="true"] .accordion-body-inner {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity var(--dur-med) var(--ease) 0.08s, transform var(--dur-med) var(--ease) 0.08s;
+}
+
+.accordion-panel.warn .accordion-body-inner { border-top: 1px solid var(--c-warn-line); }
+.accordion-panel:not(.warn) .accordion-body-inner { border-top: 1px solid var(--c-border); }
+.accordion-panel[data-open="false"] .accordion-body-inner { border-top-color: transparent; }
+
+.safety-body { padding: var(--sp-6); }
+.safety-body .step-text strong { color: var(--c-text); font-weight: 600; }
+
+.steps-body { padding: var(--sp-6); }
+.step { display: flex; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.step:last-child { margin-bottom: 0; }
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: var(--c-surface-2);
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 650;
+  color: var(--c-text-dim);
+}
+.step-text { font-size: 0.875rem; color: var(--c-text-dim); line-height: 1.5; padding-top: 1px; }
+
+/* Right column groups on desktop */
+.side-col { display: flex; flex-direction: column; gap: var(--sp-4); }
+.side-col > * { animation: fadeRise 0.5s var(--ease) both; }
+.side-col > *:nth-child(1) { animation-delay: 0.16s; }
+.side-col > *:nth-child(2) { animation-delay: 0.22s; }
+
+footer {
+  margin-top: var(--sp-7);
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--c-text-faint);
+}
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="top">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      </div>
+      <h1>Speaker Cleaner</h1>
+    </div>
+    <p class="subtitle">Calibrated tones to help clear water and debris from your phone speaker.</p>
+
+    <div class="layout">
+
+      <!-- LEFT: main control panel -->
+      <div class="panel">
+        <div class="panel-inner">
+
+          <div class="modes" role="tablist" aria-label="Cleaning mode">
+            <div class="mode-indicator" id="modeIndicator"></div>
+            <button class="mode-btn active" data-mode="water" onclick="setMode('water')" role="tab" aria-selected="true">Water</button>
+            <button class="mode-btn" data-mode="dust" onclick="setMode('dust')" role="tab" aria-selected="false">Dust</button>
+            <button class="mode-btn" data-mode="both" onclick="setMode('both')" role="tab" aria-selected="false">Full</button>
+          </div>
+
+          <div class="readout">
+            <div class="hz" id="hz">165</div>
+            <div class="hz-unit">Hz</div>
+          </div>
+          <p class="mode-desc" id="modeDesc">Low-frequency pulse · best for ejecting water</p>
+
+          <div class="wave-wrap">
+            <canvas id="wave" width="400" height="128"></canvas>
+          </div>
+
+          <div class="progress-row">
+            <div class="bar-track">
+              <div class="bar-fill" id="bar"></div>
+            </div>
+            <div class="time-row">
+              <span id="elapsed">0:00</span>
+              <span id="total">0:45</span>
+            </div>
+          </div>
+
+          <button class="play-btn" id="playBtn" onclick="toggle()">
+            <svg class="icon-play" id="playIcon" viewBox="0 0 24 24">
+              <path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86z"/>
+            </svg>
+            <span id="playLabel">Start cleaning</span>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: safety + steps -->
+      <div class="side-col">
+
+        <div class="accordion-panel" id="safetyPanel" data-open="false">
+          <button class="accordion-head" onclick="toggleAccordion('safetyPanel')" aria-expanded="false">
+            <svg class="head-icon" viewBox="0 0 24 24"><path d="M12 2 2 7v6c0 5.25 3.75 9.75 10 11 6.25-1.25 10-5.75 10-11V7l-10-5zm0 2.24 8 4v4.76c0 4.14-2.9 7.85-8 8.96-5.1-1.11-8-4.82-8-8.96V8.24l8-4zM11 7v6h2V7h-2zm0 8v2h2v-2h-2z"/></svg>
+            <span class="accordion-title">Before you start</span>
+            <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body-wrap">
+            <div class="accordion-body-inner">
+              <div class="safety-body">
+                <div class="step">
+                  <div class="step-num">1</div>
+                  <div class="step-text"><strong>Not a repair.</strong> It loosens trapped water and debris — it won't fix corrosion or internal damage.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">2</div>
+                  <div class="step-text"><strong>Stop</strong> if the phone gets hot or the sound distorts mid-cycle.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">3</div>
+                  <div class="step-text"><strong>Wait between cycles</strong> — repeated back-to-back runs can stress the speaker.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">4</div>
+                  <div class="step-text"><strong>Keep pets away</strong> — some tones are uncomfortable for sensitive hearing.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">5</div>
+                  <div class="step-text"><strong>After significant submersion,</strong> sound alone may not be enough — consider professional repair.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-panel" id="stepsPanel" data-open="false">
+          <button class="accordion-head" onclick="toggleAccordion('stepsPanel')" aria-expanded="false">
+            <svg class="head-icon" viewBox="0 0 24 24"><path d="M9 5v2h6.59L4 18.59 5.41 20 17 8.41V15h2V5H9z"/></svg>
+            <span class="accordion-title">How to use</span>
+            <svg class="accordion-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-body-wrap">
+            <div class="accordion-body-inner">
+              <div class="steps-body">
+                <div class="step">
+                  <div class="step-num">1</div>
+                  <div class="step-text">Remove any case, speaker facing down over a soft cloth.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">2</div>
+                  <div class="step-text">Turn media volume all the way up.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">3</div>
+                  <div class="step-text">Press Start and let the cycle finish. Wait 20–30 sec before repeating.</div>
+                </div>
+                <div class="step">
+                  <div class="step-num">4</div>
+                  <div class="step-text">Test the speaker. Stop after 3 cycles if there's no improvement.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>
+      Runs entirely in your browser · No data collected
+    </footer>
+
+  </div>
+
+  <script>
+    const MODES = {
+      water: {
+        freq: 165, duration: 45, pulseOn: 12, pulseOff: 3,
+        label: '165', desc: 'Low-frequency pulse · best for ejecting water'
+      },
+      dust: {
+        freq: 220, duration: 40, pulseOn: 40, pulseOff: 0,
+        label: '220', desc: 'Steady mid-tone · loosens dust and lint'
+      },
+      both: {
+        freq: 165, duration: 55, pulseOn: 10, pulseOff: 2,
+        label: '165–220', desc: 'Frequency sweep · water + dust combined', sweep: true
+      }
+    };
+
+    let mode = 'water';
+    let playing = false;
+    let ctx = null, osc = null, gain = null;
+    let startTs = 0;
+    let raf = null;
+    let pulseId = null;
+
+    // ---- persisted preference ----
+    const STORAGE_KEY = 'speaker-cleaner-mode';
+    function loadSavedMode() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved && MODES[saved]) return saved;
+      } catch (_) {}
+      return 'water';
+    }
+    function saveMode(m) {
+      try { localStorage.setItem(STORAGE_KEY, m); } catch (_) {}
+    }
+
+    function applyActiveTab(idx) {
+      tabs.forEach((t, i) => {
+        const isActive = i === idx;
+        t.classList.toggle('active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    }
+
+    function setMode(m) {
+      if (playing) return;
+      mode = m;
+      saveMode(m);
+      applyActiveTab(modeOrder.indexOf(m));
+      const cfg = MODES[m];
+      const hzEl = document.getElementById('hz');
+      const descEl = document.getElementById('modeDesc');
+      hzEl.classList.add('swap');
+      descEl.classList.add('swap');
+      setTimeout(() => {
+        hzEl.textContent = cfg.label;
+        descEl.textContent = cfg.desc;
+        hzEl.classList.remove('swap');
+        descEl.classList.remove('swap');
+      }, 120);
+      document.getElementById('total').textContent = format(cfg.duration);
+      document.getElementById('elapsed').textContent = '0:00';
+      document.getElementById('bar').style.width = '0%';
+      if (!playing) drawIdleWave();
+      if (typeof moveIndicatorToMode === 'function') moveIndicatorToMode(m, true);
+    }
+
+    function toggle() { playing ? stop() : start(); }
+
+    function start() {
+      const cfg = MODES[mode];
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      gain = ctx.createGain();
+      gain.gain.value = 0.9;
+      gain.connect(ctx.destination);
+
+      osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = cfg.freq;
+      osc.connect(gain);
+      osc.start();
+
+      playing = true;
+      startTs = performance.now();
+      uiPlaying(true);
+
+      if (cfg.sweep) {
+        const t0 = ctx.currentTime;
+        osc.frequency.setValueAtTime(165, t0);
+        osc.frequency.linearRampToValueAtTime(220, t0 + cfg.duration);
+      } else if (cfg.pulseOff > 0) {
+        pulse(cfg);
+      }
+
+      raf = requestAnimationFrame(tick);
+      if (settleRaf) cancelAnimationFrame(settleRaf);
+      drawWave();
+      setTimeout(() => { if (playing) stop(); }, cfg.duration * 1000);
+    }
+
+    function pulse(cfg) {
+      let on = true;
+      const loop = () => {
+        if (!playing) return;
+        if (on) {
+          gain.gain.setTargetAtTime(0.9, ctx.currentTime, 0.008);
+          pulseId = setTimeout(() => { on = false; loop(); }, cfg.pulseOn * 1000);
+        } else {
+          gain.gain.setTargetAtTime(0, ctx.currentTime, 0.008);
+          pulseId = setTimeout(() => { on = true; loop(); }, cfg.pulseOff * 1000);
+        }
+      };
+      loop();
+    }
+
+    function stop() {
+      if (osc) { try { osc.stop(); } catch (_) {} osc = null; }
+      if (ctx) { ctx.close(); ctx = null; }
+      if (pulseId) clearTimeout(pulseId);
+      if (raf) cancelAnimationFrame(raf);
+      if (waveRaf) cancelAnimationFrame(waveRaf);
+      playing = false;
+      uiPlaying(false);
+      document.getElementById('bar').style.width = '0%';
+      document.getElementById('elapsed').textContent = '0:00';
+      settleWaveToIdle();
+    }
+
+    function tick() {
+      if (!playing) return;
+      const cfg = MODES[mode];
+      const t = (performance.now() - startTs) / 1000;
+      const pct = Math.min(100, (t / cfg.duration) * 100);
+      document.getElementById('bar').style.width = pct + '%';
+      document.getElementById('elapsed').textContent = format(t);
+      if (t < cfg.duration) raf = requestAnimationFrame(tick);
+    }
+
+    // ---- live waveform ----
+    const waveCanvas = document.getElementById('wave');
+    const waveCtx = waveCanvas.getContext('2d');
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--c-accent').trim() || '#4d8dff';
+
+    function resizeCanvas() {
+      const rect = waveCanvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      waveCanvas.width = rect.width * dpr;
+      waveCanvas.height = rect.height * dpr;
+      waveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!playing) drawIdleWave();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawIdleWave() {
+      const rect = waveCanvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const midY = rect.height / 2;
+      waveCtx.clearRect(0, 0, rect.width, rect.height);
+      waveCtx.lineWidth = 2;
+      waveCtx.strokeStyle = accentColor;
+      waveCtx.globalAlpha = 0.35;
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, midY);
+      waveCtx.lineTo(rect.width, midY);
+      waveCtx.stroke();
+      waveCtx.globalAlpha = 1;
+    }
+
+    // A rendered-not-sampled sine: we draw the wave from a phase/time value
+    // we control, so amplitude can be animated continuously with no jump
+    // between "playing" and "settling" states — it's the same curve throughout.
+    let waveStartTs = performance.now();
+    let waveRaf = null;
+    let settleRaf = null;
+    let currentAmp = 0;        // 0..1, animates the wave's height
+    let currentAlpha = 0.35;   // line opacity
+    const CYCLES_ACROSS = 3;   // how many visual wave cycles fit across the box
+    const WAVE_HZ = 2.2;       // how fast the rendered wave animates (independent of audio pitch)
+
+    function renderWaveFrame(amp, alpha) {
+      const rect = waveCanvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const midY = rect.height / 2;
+      const t = (performance.now() - waveStartTs) / 1000;
+      const maxPeak = (rect.height / 2) * 0.75;
+
+      waveCtx.clearRect(0, 0, rect.width, rect.height);
+      waveCtx.lineWidth = 2;
+      waveCtx.strokeStyle = accentColor;
+      waveCtx.globalAlpha = alpha;
+      waveCtx.beginPath();
+
+      const steps = 96;
+      for (let i = 0; i <= steps; i++) {
+        const x = (i / steps) * rect.width;
+        const phase = (i / steps) * CYCLES_ACROSS * Math.PI * 2;
+        const y = midY + Math.sin(phase + t * WAVE_HZ * Math.PI * 2) * maxPeak * amp;
+        if (i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+      waveCtx.globalAlpha = 1;
+    }
+
+    function drawWave() {
+      if (!playing) return;
+      currentAmp += (1 - currentAmp) * 0.15;
+      currentAlpha += (1 - currentAlpha) * 0.15;
+      renderWaveFrame(currentAmp, currentAlpha);
+      waveRaf = requestAnimationFrame(drawWave);
+    }
+
+    function settleWaveToIdle() {
+      if (settleRaf) cancelAnimationFrame(settleRaf);
+      function step() {
+        currentAmp += (0 - currentAmp) * 0.08;
+        currentAlpha += (0.35 - currentAlpha) * 0.08;
+        renderWaveFrame(currentAmp, currentAlpha);
+        if (currentAmp > 0.01 || Math.abs(currentAlpha - 0.35) > 0.01) {
+          settleRaf = requestAnimationFrame(step);
+        } else {
+          drawIdleWave();
+        }
+      }
+      settleRaf = requestAnimationFrame(step);
+    }
+
+    function format(s) {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+
+    function uiPlaying(on) {
+      const btn = document.getElementById('playBtn');
+      const icon = document.getElementById('playIcon');
+      const label = document.getElementById('playLabel');
+
+      if (on) {
+        btn.classList.add('stop');
+        icon.innerHTML = '<rect x="6" y="6" width="12" height="12" rx="1.5"/>';
+        icon.classList.remove('icon-play');
+        label.textContent = 'Stop';
+      } else {
+        btn.classList.remove('stop');
+        icon.innerHTML = '<path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86a1 1 0 0 0-1.5.86z"/>';
+        icon.classList.add('icon-play');
+        label.textContent = 'Start cleaning';
+      }
+      icon.classList.remove('icon-pop');
+      void icon.offsetWidth;
+      icon.classList.add('icon-pop');
+    }
+
+    // ---- indicator that tracks the active tab ----
+    const modesEl = document.querySelector('.modes');
+    const indicator = document.getElementById('modeIndicator');
+    const tabs = Array.from(document.querySelectorAll('.mode-btn'));
+    const modeOrder = ['water', 'dust', 'both'];
+
+    function slotOffset(index) {
+      // Compute from the real tab element position so the indicator
+      // always aligns exactly under the tab, regardless of gap/padding math.
+      const track = modesEl.getBoundingClientRect();
+      const tabRect = tabs[index].getBoundingClientRect();
+      return tabRect.left - track.left;
+    }
+
+    function moveIndicatorToMode(m, animate) {
+      const idx = modeOrder.indexOf(m);
+      indicator.style.transition = animate ? '' : 'none';
+      indicator.style.transform = `translateX(${slotOffset(idx)}px)`;
+      if (!animate) {
+        // force reflow then restore transition for future moves
+        void indicator.offsetWidth;
+        indicator.style.transition = '';
+      }
+    }
+
+    setMode(loadSavedMode());
+
+    // ---- accordion panels ----
+    function toggleAccordion(id) {
+      const panel = document.getElementById(id);
+      const isOpen = panel.getAttribute('data-open') === 'true';
+      panel.setAttribute('data-open', isOpen ? 'false' : 'true');
+      panel.querySelector('.accordion-head').setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    }
+    drawIdleWave();
+
+    let dragging = false;
+    let dragStartX = 0;
+    let baseOffset = 0;
+    let currentOffset = 0;
+
+    function nearestIndexToOffset(offset) {
+      let best = 0;
+      let bestDist = Infinity;
+      modeOrder.forEach((m, i) => {
+        const dist = Math.abs(slotOffset(i) - offset);
+        if (dist < bestDist) { bestDist = dist; best = i; }
+      });
+      return best;
+    }
+
+    function onDragStart(clientX, clientY) {
+      if (playing) return;
+      const activeIdx = modeOrder.indexOf(mode);
+      const r = indicator.getBoundingClientRect();
+      if (clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return;
+      dragging = true;
+      dragStartX = clientX;
+      baseOffset = slotOffset(activeIdx);
+      currentOffset = baseOffset;
+      indicator.classList.add('dragging');
+      indicator.style.transition = 'none';
+    }
+
+    function onDragMove(clientX, clientY) {
+      if (!dragging) return;
+      const dx = clientX - dragStartX;
+      const minOffset = slotOffset(0);
+      const maxOffset = slotOffset(modeOrder.length - 1);
+      currentOffset = Math.min(maxOffset, Math.max(minOffset, baseOffset + dx));
+      indicator.style.transform = `translateX(${currentOffset}px)`;
+      applyActiveTab(nearestIndexToOffset(currentOffset));
+    }
+
+    function onDragEnd() {
+      if (!dragging) return;
+      dragging = false;
+      indicator.classList.remove('dragging');
+      setMode(modeOrder[nearestIndexToOffset(currentOffset)]);
+    }
+
+    modesEl.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      onDragStart(t.clientX, t.clientY);
+    }, { passive: true });
+    modesEl.addEventListener('touchmove', (e) => {
+      if (!dragging) return;
+      const t = e.touches[0];
+      onDragMove(t.clientX, t.clientY);
+    }, { passive: true });
+    modesEl.addEventListener('touchend', () => {
+      onDragEnd();
+    }, { passive: true });
+
+    modesEl.addEventListener('mousedown', (e) => onDragStart(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => onDragMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => onDragEnd());
+    window.addEventListener('resize', () => { if (!dragging) moveIndicatorToMode(mode, false); });
+  </script>
+</body>
+</html>
